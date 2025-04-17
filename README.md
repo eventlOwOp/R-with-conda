@@ -16,6 +16,10 @@ Be aware that other R executables should be in `C:\Users\<your-name>\.conda\envs
 
 So now you have `R.conda.exe` and `Rterm.conda.exe` (a copy of `R.conda.exe` with name altered) and other executables.
 
+### Explanation
+
+When putting it to `C:\Users\<your-name>\.conda\envs\<your-env>\Scripts\`, this program will automatically find the virtual environment path `C:\Users\<your-name>\.conda\envs\<your-env>\`. And then it locates the R executable. Finally, it sets the PATH variable by `system()` function in C++ and runs the R executable.
+
 ## Usage
 Run these files with **ABSOLUTE PATH**.
 
