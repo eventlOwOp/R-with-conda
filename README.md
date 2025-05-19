@@ -8,9 +8,9 @@ Name the exe file `R.conda.exe`, and put it the same folder of your R executable
 
 When using a conda environment, like `C:\Users\<your-name>\.conda\envs\<your-env>\`, the R executable should be at `C:\Users\<your-name>\.conda\envs\<your-env>\Scripts\R.exe`.
 
-Then you should put `R.conda.exe` at `C:\Users\<your-name>\.conda\envs\<your-env>\R.conda.exe`.
+Then you should put `R.conda.exe` at `C:\Users\<your-name>\.conda\envs\<your-env>\Scripts\R.conda.exe`.
 
-For `Rterm.exe` and other R executables, copy `R.conda.exe`, and rename it after them and ending with `.conda.exe`. Also put it in `C:\Users\<your-name>\.conda\envs\<your-env>\Scripts\`.
+For `Rterm.exe` and other R executables, copy `R.conda.exe`, and rename it after them and ending with `.conda.exe` (`Rterm.conda.exe` in this example). Also put it in `C:\Users\<your-name>\.conda\envs\<your-env>\Scripts\`.
 
 Be aware that other R executables should be in `C:\Users\<your-name>\.conda\envs\<your-env>\Scripts\` as well.
 
@@ -32,5 +32,7 @@ Easy to modify yourself for Linux/MacOS support
 
 ## Compile yourself
 Just compile it yourself.
+
+To make it also work when conda environment has already loaded, compile and link statically. (Use `--static` argument for GCC)
 
 My version is compiled using MinGW gcc 14.0.0 240107 (experimental) from winlibs.
