@@ -1,6 +1,9 @@
 #include <filesystem>
 #include <string>
 #include <iostream>
+#include <cstdlib> // 添加头文件用于getenv函数
+#include <set>    // 添加头文件用于std::set
+#include <sstream> // 添加头文件用于字符串流处理
 
 namespace fs = std::filesystem;
 
@@ -80,10 +83,36 @@ int main(int argc, char* argv[]) {
         return 1;
     }
     
-    // Build simplified PATH environment variable command (avoid checking directory existence multiple times)
-    std::string command = "set PATH=" + condaEnvRoot.string() + ";";
+    // 读取当前PATH环境变量
+    const char* currentPath = std::getenv("PATH");
+    if (!currentPath) {
+        std::cerr << "Warning: Cannot read PATH environment variable." << std::endl;
+        currentPath = "";
+    }
     
-    // Add standard paths
+    // 将当前PATH拆分为单独的路径，存入集合中便于检查
+    std::string pathStr(currentPath);
+    std::set<std::string> existingPaths;
+    std::istringstream pathStream(pathStr);
+    std::string path;
+    
+    // 在Windows下，PATH使用分号分隔
+    while (std::getline(pathStream, path, ';')) {
+        if (!path.empty()) {
+            existingPaths.insert(path);
+        }
+    }
+    
+    // 检查所需的路径是否都已存在于PATH中
+    bool pathsExist = true;
+    std::string command;
+    
+    // 检查环境根目录
+    if (existingPaths.find(condaEnvRoot.string()) == existingPaths.end()) {
+        pathsExist = false;
+    }
+    
+    // 检查所需的子目录
     const char* subdirs[] = {
         "Library\\mingw-w64\\bin",
         "Library\\usr\\bin",
@@ -94,21 +123,37 @@ int main(int argc, char* argv[]) {
     
     for (const char* subdir : subdirs) {
         fs::path p = condaEnvRoot / subdir;
-        if (fs::exists(p)) {
-            command += p.string() + ";";
+        if (fs::exists(p) && existingPaths.find(p.string()) == existingPaths.end()) {
+            pathsExist = false;
+            break;
         }
     }
     
-    // Execute target program
-    command += "%PATH% && \"" + targetPath.string() + "\"";
+    // 如果所有路径都已存在，则直接启动目标程序
+    if (pathsExist) {
+        command = "\"" + targetPath.string() + "\"";
+    } else {
+        // 构建新的PATH环境变量命令
+        command = "set PATH=" + condaEnvRoot.string() + ";";
+        
+        // 添加标准路径
+        for (const char* subdir : subdirs) {
+            fs::path p = condaEnvRoot / subdir;
+            if (fs::exists(p)) {
+                command += p.string() + ";";
+            }
+        }
+        
+        command += "%PATH% && \"" + targetPath.string() + "\"";
+    }
     
-    // Add command line arguments
+    // 添加命令行参数
     for (int i = 1; i < argc; i++) {
         command += " \"";
         command += argv[i];
         command += "\"";
     }
     
-    // Execute command
+    // 执行命令
     return system(command.c_str());
 }
